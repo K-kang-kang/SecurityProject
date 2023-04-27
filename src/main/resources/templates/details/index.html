@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <base th:href="@{/}">
+    <meta charset="UTF-8">
+
+    <link href="jquery/bootstrap_3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet"/>
+    <link href="jquery/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.min.css" type="text/css"
+          rel="stylesheet"/>
+
+    <script type="text/javascript" src="jquery/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="jquery/bootstrap_3.3.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript"
+            src="jquery/bootstrap-datetimepicker-master/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript"
+            src="jquery/bootstrap-datetimepicker-master/locale/bootstrap-datetimepicker.zh-CN.js"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+
+            //定制字段
+            $("#definedColumns > li").click(function (e) {
+                //防止下拉菜单消失
+                e.stopPropagation();
+            });
+
+            //给更新按钮添加单击事件
+            $("#saveEditUser").click(function () {
+                var id = $.trim($("#userId").val());
+                var username = $.trim($("#edit-username").val());
+                var password = $.trim($("#edit-password").val());
+                var idnumber = $.trim($("#edit-idnumber").val());
+                var channel = $.trim($("#edit-channel").val());
+                var phone = $.trim($("#phone").val());
+                var permission = $.trim($("#permission").val());
+                $("#editCustomerModal").modal("hide");
+                if (username == "") {
+                    alert("用户名不能为空");
+                    return;
+                }
+                if (password == "") {
+                    alert("密码不能为空");
+                    return;
+                }
+                if (idnumber == "") {
+                    alert("身份证号不能为空");
+                    return;
+                }
+                if (channel == "") {
+                    alert("渠道不能为空");
+                    return;
+                }
+                $.ajax({
+                    url: 'user/editUser',
+                    data: {
+                        id: id,
+                        username: username,
+                        password: password,
+                        idnumber: idnumber,
+                        channel: channel,
+                        phone: phone,
+                        permission: permission
+                    },
+                    type: 'post',
+                    dataType: 'json',
+                    success: function (data) {
+                        alert("修改个人信息成功");
+                        self.opener.location.reload();
+                    }
+                });
+                // alert(id+" "+username + " " + password + " " + idnumber + " " + channel + " " + phone + " " + permission);
+            });
+
+        });
+
+    </script>
+</head>
+<body>
+
+
+<!-- 修改客户的模态窗口 -->
+<div class="modal fade" id="editCustomerModal" role="dialog">
+    <div class="modal-dialog" role="document" style="width: 85%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">修改个人信息</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" role="form">
+
+                    <div class="form-group">
+                        <label for="edit-username" class="col-sm-2 control-label">用户名</label>
+                        <div class="col-sm-10" style="width: 300px;">
+                            <input type="text" class="form-control" id="edit-username"
+                                   th:value="${session.user.username}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10" style="width: 300px;">
+                            <input type="text" class="form-control" id="edit-password"
+                                   th:value="${session.user.password}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-idnumber" class="col-sm-2 control-label">身份证号</label>
+                        <div class="col-sm-10" style="width: 300px;">
+                            <input type="text" class="form-control" id="edit-idnumber"
+                                   th:value="${session.user.idnumber}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-channel" class="col-sm-2 control-label">了解网站的渠道</label>
+                        <div class="col-sm-10" style="width: 81%;">
+                            <input type="text" class="form-control" id="edit-channel"
+                                   th:value="${session.user.channel}">
+                        </div>
+                    </div>
+                    <div>
+                        <input type="hidden" id="userId" th:value="${session.user.id}">
+                        <input type="hidden" id="permission" th:value="${session.user.permission}">
+                        <input type="hidden" id="phone" th:value="${session.user.phone}">
+                    </div>
+
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="saveEditUser">更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <div style="position: relative; left: 10px; top: -10px;">
+        <div class="page-header">
+            <h3>用户个人信息</h3>
+        </div>
+    </div>
+</div>
+
+<div style="position: relative; top: -20px; left: 0px; width: 100%; height: 100%;">
+
+    <div style="width: 100%; position: absolute;top: 5px; left: 10px;">
+
+
+        <div class="btn-toolbar" role="toolbar"
+             style="background-color: #F7F7F7; height: 50px; position: relative;top: 5px;">
+            <div class="btn-group" style="position: relative; top: 18%;">
+                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editCustomerModal"><span
+                        class="glyphicon glyphicon-pencil"></span> 修改
+                </button>
+            </div>
+
+        </div>
+        <div style="position: relative;top: 10px;">
+            <table class="table table-hover">
+                <thead>
+                <tr style="color: #B3B3B3;">
+                    <td>用户名</td>
+                    <td>密码</td>
+                    <td>身份证号</td>
+                    <td>手机号</td>
+                    <td>了解网站渠道</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td th:text="${session.user.username}"></td>
+                    <td th:text="${session.user.password}"></td>
+                    <td th:text="${session.user.idnumber}"></td>
+                    <td th:text="${session.user.phone}"></td>
+                    <td th:text="${session.user.channel}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

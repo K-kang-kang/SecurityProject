@@ -1,0 +1,74 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/user_security
+    username: root
+    password: 123456
+    type: com.zaxxer.hikari.HikariDataSource
+
+    druid:
+
+
+      stat-view-servlet:    #监控页配置
+        enabled: true
+        login-username: admin
+        login-password: admin
+        reset-enable: false
+      #        url-pattern: /druid/*
+
+      web-stat-filter:   #web监控
+        enabled: true
+        url-pattern: /*
+        exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+
+      aop-patterns: com.kang.admin.*  #SpringBean监控
+      filters: stat,wall,slf4j  #所有开启的功能
+
+      filter:
+        stat:  #sql监控
+          slow-sql-millis: 1000
+          log-slow-sql: true
+          enabled: true
+        wall:  #防火墙
+          enabled: true
+          config:
+            drop-table-allow: false
+
+
+
+  jdbc:
+    template:
+      query-timeout: 3
+  boot:
+    admin:
+      client:
+        url: http://localhost:8888
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+
+mybatis:
+  #  config-location: classpath:mybatis/mybatis-config.xml
+  mapper-locations: classpath:mabatis/mapper/*.xml
+  configuration:  #指定mybatis全局配置文件中的相关配置项  它与mybatis-config.xml不能同时存在
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql
+
+
+
+
+
+
+

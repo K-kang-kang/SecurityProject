@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <base th:href="@{/}">
+    <meta charset="UTF-8">
+
+    <link th:href="@{/jquery/bootstrap_3.3.0/css/bootstrap.min.css}" type="text/css" rel="stylesheet"/>
+    <link th:href="@{/jquery/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.min.css}"
+          type="text/css"
+          rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css"
+          th:href="@{/jquery/bs_pagination-master/css/jquery.bs_pagination.min.css}">
+
+    <script type="text/javascript" th:src="@{/jquery/jquery-1.11.1-min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/bootstrap_3.3.0/js/bootstrap.min.js}"></script>
+    <script type="text/javascript"
+            th:src="@{/jquery/bootstrap-datetimepicker-master/js/bootstrap-datetimepicker.js}"></script>
+    <script type="text/javascript"
+            th:src="@{/jquery/bootstrap-datetimepicker-master/locale/bootstrap-datetimepicker.zh-CN.js}"></script>
+    <script type="text/javascript"
+            th:src="@{/jquery/bs_pagination-master/js/jquery.bs_pagination.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/bs_pagination-master/localization/en.js}"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+
+            queryUserForConditionByPage(1, 5);
+
+            //给全选按钮添加单击事件
+            $("#chckAll").click(function () {
+                $("#tBody input[type='checkbox']").prop("checked", this.checked);
+            });
+            $("#tBody").on("click", "input[type='checkbox']", function () {
+                //如果列表中的所有checkbox都选中，则"全选"按钮也选中
+                if ($("#tBody input[type='checkbox']").size() == $("#tBody input[type='checkbox']:checked").size()) {
+                    $("#chckAll").prop("checked", true);
+                } else {//如果列表中的所有checkbox至少有一个没选中，则"全选"按钮也取消
+                    $("#chckAll").prop("checked", false);
+                }
+            });
+
+            //给批量导出按钮添加单击事件
+            /*$("#exportActivityAllBtn").click(function () {
+                window.location.href = "workbench/activity/exportAllActivitys.do";
+            });*/
+
+            //给选择导出按钮添加单击事件
+            $("#exportUserOptBtn").click(function () {
+                //收集参数
+                //获取列表中所有被选中的checkbox
+                var chekkedIds = $("#tBody input[type='checkbox']:checked");
+                console.log(chekkedIds);
+                if (chekkedIds.size() == 0) {
+                    alert("请选择要导出的用户");
+                    return;
+                }
+                var ids = "";
+                $.each(chekkedIds, function (index) {//id=xxxx&id=xxx&.....&id=xxx&
+                    ids += "id=" + this.value + "&";
+                });
+                console.log(ids);
+                window.location.href = "user/exportUserOpt?" + ids;
+            });
+
+            //给查询按钮添加单击事件
+            $("#queryUserBtn").click(function () {
+                queryUserForConditionByPage(1, $("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+            });
+
+            //给导入按钮添加单击事件
+            $("#importUserBtn").click(function () {
+                //收集参数
+                var userFileName = $("#userFile").val();
+                var privateKey = $("#privateKey").val();
+                var userFileNameSuffix = userFileName.substr(userFileName.lastIndexOf(".") + 1).toLocaleLowerCase();
+                var pricatekeySuffix = privateKey.substr(privateKey.lastIndexOf(".") + 1).toLocaleLowerCase();
+                if (userFileNameSuffix != "txt") {
+                    alert("只支持txt文件");
+                    return;
+                }
+                if (pricatekeySuffix != "txt") {
+                    alert("只支持txt文件");
+                    return;
+                }
+                var userFile = $("#userFile")[0].files[0];
+                if (userFile.size > 10 * 1024 * 1024) {
+                    alert("文件大小不超过10MB");
+                    return;
+                }
+                var privatekeySize = $("#privateKey")[0].files[0];
+                if (privatekeySize.size > 10 * 1024 * 1024) {
+                    alert("文件大小不超过10MB");
+                    return;
+                }
+                var formData = new FormData();
+                formData.append("userFile", userFile);
+                formData.append("privateKeyFile", privatekeySize);
+                // formData.append("userFile", userFile);
+                $.ajax({
+                    url: 'user/importUsers',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    // processData:false,
+                    // contentType:false,
+                    type: 'post',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code=="1"){
+                            // alert("导入成功"+data.result+"条记录");
+                            alert("导入成功"+data.retData+"条记录");
+                            $("#importActivityModal").modal("hide");
+                            queryUserForConditionByPage(1,$("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+                        }else {
+                            alert(data.message);
+                            $("#importActivityModal").modal("show");
+                        }
+                    }
+                });
+
+            });
+
+
+            function queryUserForConditionByPage(pageNum, pageSize) {
+                var username = $.trim($("#query_name").val());
+                var phone = $.trim($("#query_phone").val());
+                var channel = $.trim($("#query_channel").val());
+                $.ajax({
+                    url: 'user/queryUserForConditionByPage',
+                    data: {
+                        pageNum: pageNum,
+                        pageSize: pageSize,
+                        username: username,
+                        phone: phone,
+                        channel: channel
+                    },
+                    type: 'post',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log(data);
+                        var htmlStr = "";
+                        $.each(data.retData.list, function (index, obj) {
+                            htmlStr += "<tr>";
+                            htmlStr += "<td><input type=\"checkbox\" value=\"" + obj.id + "\" /></td>";
+                            htmlStr += "<td>" + obj.username + "</td>";
+                            htmlStr += "<td>" + obj.password + "</td>";
+                            htmlStr += "<td>" + obj.idnumber + "</td>";
+                            htmlStr += "<td>" + obj.phone + "</td>";
+                            htmlStr += "<td>" + obj.channel + "</td>";
+                            htmlStr += "</tr>";
+                        });
+                        $("#tBody").html(htmlStr);
+                        $("#chckAll").prop("checked", false);
+                        //对容器调用bs_pagination工具函数，显示翻页信息
+                        $("#demo_pag1").bs_pagination({
+                            currentPage: pageNum,//当前页号,相当于pageNo
+
+                            rowsPerPage: pageSize,//每页显示条数,相当于pageSize
+                            totalRows: data.retData.total,//总条数
+                            totalPages: data.retData.pages,  //总页数,必填参数.
+
+                            visiblePageLinks: data.retData.navigatePages,//最多可以显示的卡片数
+
+                            showGoToPage: false,//是否显示"跳转到"部分,默认true--显示
+                            showRowsPerPage: false,//是否显示"每页显示条数"部分。默认true--显示
+                            showRowsInfo: false,//是否显示记录的信息，默认true--显示
+
+                            //用户每次切换页号，都自动触发本函数;
+                            //每次返回切换页号之后的pageNo和pageSize
+                            onChangePage: function (event, pageObj) { // returns page_num and rows_per_page after a link has clicked
+                                //js代码
+                                // alert(pageObj.currentPage);
+                                // alert(pageObj.rowsPerPage);
+                                queryUserForConditionByPage(pageObj.currentPage, pageObj.rowsPerPage);
+                            }
+                        });
+                    }
+                });
+            }
+
+        });
+
+    </script>
+</head>
+<body>
+
+
+<!-- 导入用户的模态窗口 -->
+<div class="modal fade" id="importActivityModal" role="dialog">
+    <div class="modal-dialog" role="document" style="width: 85%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">导入用户</h4>
+            </div>
+            <div class="modal-body" style="height: 350px;">
+                <div style="position: relative;top: 20px; left: 50px;">
+                    请选择要上传用户文件：<small style="color: gray;">[仅支持.txt]</small>
+                </div>
+                <div style="position: relative;top: 40px; left: 50px;">
+                    <input type="file" id="userFile">
+                </div>
+                <div style="position: relative;top: 60px; left: 50px;">
+                    请选择私钥：<small style="color: gray;">[仅支持.txt]</small>
+                </div>
+                <div style="position: relative;top: 80px; left: 50px;">
+                    <input type="file" id="privateKey">
+                </div>
+                <div style="position: relative; width: 400px; height: 320px; left: 45% ; top: -40px;">
+                    <h3>重要提示</h3>
+                    <ul>
+                        <li>操作仅针对txt，仅支持后缀名为txt的文件。</li>
+                        <li>请确认您的文件大小不超过5MB。</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button id="importUserBtn" type="button" class="btn btn-primary">导入</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <div style="position: relative; left: 10px; top: -10px;">
+        <div class="page-header">
+            <h3>用户列表</h3>
+        </div>
+    </div>
+</div>
+<div style="position: relative; top: -20px; left: 0px; width: 100%; height: 100%;">
+    <div style="width: 100%; position: absolute;top: 5px; left: 10px;">
+
+        <div class="btn-toolbar" role="toolbar" style="height: 80px;">
+            <form class="form-inline" role="form" style="position: relative;top: 8%; left: 5px;">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-addon">用户名</div>
+                        <input id="query_name" class="form-control" type="text">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-addon">了解网站的渠道</div>
+                        <input id="query_channel" class="form-control" type="text">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-addon">手机号</div>
+                        <input id="query_phone" class="form-control" type="text"/>
+                    </div>
+                </div>
+                <button id="queryUserBtn" type="button" class="btn btn-default">查询</button>
+            </form>
+        </div>
+        <div class="btn-toolbar" role="toolbar"
+             style="background-color: #F7F7F7; height: 50px; position: relative;top: 5px;">
+            <div class="btn-group" style="position: relative; top: 18%;">
+                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#importActivityModal">
+                    <span class="glyphicon glyphicon-import"></span> 上传列表数据（导入）
+                </button>
+                <button id="exportUserOptBtn" type="button" class="btn btn-default"><span
+                        class="glyphicon glyphicon-export"></span> 下载列表数据（选择导出）
+                </button>
+            </div>
+        </div>
+        <div style="position: relative;top: 10px;">
+            <table class="table table-hover">
+                <thead>
+                <tr style="color: #B3B3B3;">
+                    <td><input id="chckAll" type="checkbox"/></td>
+                    <td>用户名</td>
+                    <td>密码</td>
+                    <td>身份证号</td>
+                    <td>手机号</td>
+                    <td>了解网站渠道</td>
+                </tr>
+                </thead>
+                <tbody id="tBody">
+                <!--<tr class="active">
+                    <td><input type="checkbox" /></td>
+                    <td th:text="${session.user.username}"></td>
+                    <td th:text="${session.user.password}"></td>
+                    <td th:text="${session.user.idnumber}"></td>
+                    <td th:text="${session.user.phone}"></td>
+                    <td th:text="${session.user.channel}"></td>
+                </tr>-->
+                </tbody>
+            </table>
+            <div id="demo_pag1"></div>
+        </div>
+
+        <!--<div style="height: 50px; position: relative;top: 30px;">
+            <div>
+                <button type="button" class="btn btn-default" style="cursor: default;">共<b>50</b>条记录</button>
+            </div>
+            <div class="btn-group" style="position: relative;top: -34px; left: 110px;">
+                <button type="button" class="btn btn-default" style="cursor: default;">显示</button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        10
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#">20</a></li>
+                        <li><a href="#">30</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-default" style="cursor: default;">条/页</button>
+            </div>
+            <div style="position: relative;top: -88px; left: 285px;">
+                <nav>
+                    <ul class="pagination">
+                        <li class="disabled"><a href="#">首页</a></li>
+                        <li class="disabled"><a href="#">上一页</a></li>
+                        <li class="active"><a href="#">1</a></li>
+                        <li><a href="#">2</a></li>
+                        <li><a href="#">3</a></li>
+                        <li><a href="#">4</a></li>
+                        <li><a href="#">5</a></li>
+                        <li><a href="#">下一页</a></li>
+                        <li class="disabled"><a href="#">末页</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>-->
+
+    </div>
+
+</div>
+</body>
+</html>

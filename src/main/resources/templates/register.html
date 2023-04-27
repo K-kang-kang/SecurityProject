@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <base th:href="@{/}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="ThemeBucket">
+    <link rel="shortcut icon" href="#" type="image/png">
+
+    <title>注册</title>
+
+    <link href="css/style.css" rel="stylesheet">
+    <!-- 响应式样式 -->
+    <link href="css/style-responsive.css" rel="stylesheet">
+
+    <!-- js IE8支持HTML5元素和媒体查询 IE 兼容脚本 -->
+    <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->
+
+    <link href="jquery/bootstrap_3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="jquery/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="jquery/bootstrap_3.3.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            //给注册按钮添加单击事件
+            $("#loginBtn").click(function () {
+                var username=$.trim($("#username").val());
+                var password=$.trim($("#password").val());
+                var ackpassword=$.trim($("#ackpassword").val());
+                var idnumber=$.trim($("#idnumber").val());
+                var phone=$.trim($("#phone").val());
+                var channel=$.trim($("#channel").val());
+                if(username==""){
+                    alert("用户名不能为空");
+                    return;
+                }
+                if(password==""){
+                    alert("密码不能为空");
+                    return;
+                }
+                var idnumberTest=/(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+                if (!idnumberTest.test(idnumber)){
+                    alert("请输入有效身份证号");
+                    return;
+                }
+                var mphoneTest = /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/;
+                if (!mphoneTest.test(phone)) {
+                    alert("请输入有效手机号码");
+                    return;
+                }
+                // alert(username+" "+password+" "+ackpassword+" "+idnumber+" "+phone+" "+channel);
+                $.ajax({
+                   url:'user/register',
+                   data:{
+                       username:username,
+                       password:password,
+                       idnumber:idnumber,
+                       phone:phone,
+                       channel:channel
+                   },
+                   type:'post',
+                   dataType:'json',
+                   success:function (data) {
+                       if (data.code=="1"){
+                           alert("注册成功！");
+                           window.location.href="main";
+                       }else {
+                           alert("该用户已经存在，请直接登陆！");
+                           window.location.href="/";
+                       }
+                   },
+                    // beforeSend:function(){
+                    //    $("#message").text("正在努力验证....");
+                    //    return true;
+                    // }
+                });
+            });
+
+            //给确认密码框添加失去焦点事件
+            $("#ackpassword").blur(function (){
+                var password=$.trim($("#password").val());
+                var ackpassword=$.trim($("#ackpassword").val());
+                if (ackpassword!=password){
+                    $("#msg").text("与原密码不一致！");
+                    return;
+                }else {
+                    $("#msg").text("");
+                }
+            });
+        });
+    </script>
+</head>
+
+<body class="login-body">
+
+<div class="container">
+
+    <form class="form-signin" method="post">
+        <div class="form-signin-heading text-center">
+            <h1 class="sign-title">注册</h1>
+            <img src="http://localhost:8080/images/login-logo.png" alt=""/>
+        </div>
+        <div class="login-wrap">
+            <input id="username" type="text" name="username" class="form-control" placeholder="用户名" autofocus>
+            <input id="password" type="password" name="password" class="form-control" placeholder="密码">
+            <input id="ackpassword" type="password" name="ackpassword" class="form-control" placeholder="确认密码">
+            <span id="msg" style="color: red"></span>
+            <input id="idnumber" type="text" name="idnumber" class="form-control" placeholder="身份证号" autofocus>
+            <input id="phone" type="text" name="phone" class="form-control" placeholder="手机号" autofocus>
+            <input id="channel" type="text" name="channel" class="form-control" placeholder="了解网站的渠道" autofocus>
+            <span id="message" style="color: red"></span>
+            <button id="loginBtn" class="btn btn-lg btn-login btn-block" type="button">
+                <i class="fa fa-check"></i>
+            </button>
+        </div>
+    </form>
+
+</div>
+
+
+
+<!-- Placed js at the end of the document so the pages load faster -->
+
+<!-- Placed js at the end of the document so the pages load faster -->
+<script src="js/jquery-1.10.2.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/modernizr.min.js"></script>
+
+</body>
+</html>

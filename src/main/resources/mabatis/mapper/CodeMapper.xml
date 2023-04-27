@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.security.user_security.mapper.CodeMapper">
+
+
+   <resultMap id="BaseResultMap" type="com.security.user_security.pojo.Code">
+       <id column="id" property="id" jdbcType="VARCHAR"/>
+       <result column="username_hash" property="usernameHash" jdbcType="VARCHAR"/>
+       <result column="password_hash" property="passwordHash" jdbcType="VARCHAR"/>
+       <result column="idnumber_hash" property="idnumberHash" jdbcType="VARCHAR"/>
+       <result column="phone_hash" property="phoneHash" jdbcType="VARCHAR"/>
+   </resultMap>
+
+    <sql id="Base_Column_List">
+        id,username_hash,password_hash,idnumber_hash,phone_hash
+    </sql>
+
+    <insert id="addCode" parameterType="com.security.user_security.pojo.Code">
+        insert into tb_code(id,username_hash,password_hash,idnumber_hash,phone_hash)
+        values(#{id},#{usernameHash},#{passwordHash},#{idnumberHash},#{phoneHash})
+    </insert>
+
+    <select id="isNotExistByPhoneCode"  parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from tb_code
+        where phone_hash=#{phoneCode}
+    </select>
+
+    <select id="queryCodeByPhoneWithPassword" resultType="com.security.user_security.pojo.Code">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_code
+        where phone_hash=#{phoneCode} and password_hash=#{passwordCode}
+    </select>
+
+    <update id="updateCodeById" parameterType="com.security.user_security.pojo.Code">
+        update tb_code set username_hash=#{usernameHash},password_hash=#{passwordHash},idnumber_hash=#{idnumberHash}
+        where id=#{id}
+    </update>
+
+    <select id="selectCodeById" parameterType="string" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from tb_code
+        where id=#{id}
+    </select>
+
+    <update id="updateCode" parameterType="com.security.user_security.pojo.Code">
+        update tb_code set username_hash=#{usernameHash},password_hash=#{passwordHash},
+                           idnumber_hash=#{idnumberHash},phone_hash=#{phoneHash}
+        where id=#{id}
+    </update>
+
+</mapper>
